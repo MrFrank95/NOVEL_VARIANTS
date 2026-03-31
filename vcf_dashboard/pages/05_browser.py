@@ -147,7 +147,12 @@ if variant_options:
     idx = variant_options.index(sel_var)
     row = show.iloc[idx]
 
-    var_sample_data = sdf[(sdf["CHROM"]==row["CHROM"]) & (sdf["POS"]==row["POS"])]
+    var_sample_data = sdf[
+        (sdf["CHROM"].astype(str) == str(row["CHROM"])) &
+        (sdf["POS"].astype(str)   == str(row["POS"]))   &
+        (sdf["REF"].astype(str)   == str(row["REF"]))   &
+        (sdf["ALT"].astype(str)   == str(row["ALT"]))
+    ]
     if len(var_sample_data):
         gt_class_colors = {"hom_ref":"#d5e8d4","het":"#ffe6cc","hom_alt":"#f8cecc","missing":"#f0f0f0"}
         var_sample_data = var_sample_data[["sample","GT","GT_CLASS","DP","GQ"]].copy()
