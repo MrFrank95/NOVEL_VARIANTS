@@ -75,6 +75,49 @@ def _best_csq(csq_str):
         best = fields
     return best
 
+def _calc_vaf(gt: str, ad_str: str) -> float | None:
+    """
+    Compute VAF (0–100 %) from GT and AD FORMAT fields.
+
+    Returns
+    -------
+    float  – VAF percentage (e.g. 47.3)
+    0.0    – sample is homozygous reference (all AD reads on ref allele)
+    None   – missing call, AD field absent/unparseable, or zero total depth
+
+    Notes
+    -----
+    * Works for diploid (0/1, 1/1) and multi-allelic (0/2, 1/2) genotypes.
+    * Phased genotypes (0|1) are handled by replacing "|" with "/".
+    * AD format: comma-separated integers, one per allele (ref first).
+      e.g. "45,12" → ref=45, alt=12 → VAF = 12/57 * 100 = 21.1 %
+    """
+    gt_clean = gt.replace("|", "/")
+    alleles  = gt_clean.split("/")
+
+    # Missing call
+    if "." in alleles:
+        return None
+
+    # Homozygous reference — VAF is defined as 0 %
+    if all(a == "0" for a in alleles):
+        return 0.0
+
+    if not ad_str or ad_str in (".", ""):
+        return None
+
+    try:
+        ad_vals = [int(x) for x in ad_str.split(",")]
+        total   = sum(ad_vals)
+        if total == 0:
+            return None
+        alt_indices = [int(a) for a in alleles if a != "0"]
+        alt_reads   = sum(ad_vals[i] for i in alt_indices if i < len(ad_vals))
+        return round(alt_reads / total * 100, 1)
+    except (ValueError, IndexError):
+        return None
+
+
 def load_vcf(vcf_path):
     rows = []
     samples = []
@@ -180,13 +223,21 @@ def load_vcf(vcf_path):
     return df, sorted_samples
 
 def get_per_sample_stats(df, sorted_samples):
-    """Compute per-sample GT, DP, GQ stats."""
+    """
+    Compute per-sample GT, VAF, DP, and GQ statistics.
+
+    VAF (Variant Allele Frequency, 0–100 %) is calculated from the AD FORMAT
+    field as:  sum(alt allele reads) / total reads * 100.
+    Returns None for missing/reference calls and when AD is absent.
+    """
     rows = []
     for df_row in df.itertuples():
-        fmt = df_row.ROW_FORMAT
+        fmt         = df_row.ROW_FORMAT
         sample_data = df_row.ROW_SAMPLES
-        fmt_keys = fmt.split(":")
+        fmt_keys    = fmt.split(":")
+
         gt_idx = fmt_keys.index("GT") if "GT" in fmt_keys else None
+        ad_idx = fmt_keys.index("AD") if "AD" in fmt_keys else None   # ← NEW
         dp_idx = fmt_keys.index("DP") if "DP" in fmt_keys else None
         gq_idx = fmt_keys.index("GQ") if "GQ" in fmt_keys else None
 
@@ -194,9 +245,11 @@ def get_per_sample_stats(df, sorted_samples):
             if i >= len(sample_data):
                 continue
             vals = sample_data[i].split(":")
-            gt = vals[gt_idx] if gt_idx is not None and gt_idx < len(vals) else "./."
-            dp = _safe_float(vals[dp_idx]) if dp_idx is not None and dp_idx < len(vals) else None
-            gq = _safe_float(vals[gq_idx]) if gq_idx is not None and gq_idx < len(vals) else None
+
+            gt  = vals[gt_idx] if gt_idx is not None and gt_idx < len(vals) else "./."
+            ad  = vals[ad_idx] if ad_idx is not None and ad_idx < len(vals) else ""  # ← NEW
+            dp  = _safe_float(vals[dp_idx]) if dp_idx is not None and dp_idx < len(vals) else None
+            gq  = _safe_float(vals[gq_idx]) if gq_idx is not None and gq_idx < len(vals) else None
 
             # Classify genotype
             gt_clean = gt.replace("|", "/")
@@ -210,24 +263,29 @@ def get_per_sample_stats(df, sorted_samples):
             else:
                 gt_class = "Heterozygous"
 
+            # VAF — computed once here so downstream pages never re-parse ← NEW
+            vaf = _calc_vaf(gt, ad)
+
             rows.append({
-                "sample": sname,
-                "CHROM": df_row.CHROM,
-                "POS": df_row.POS,
-                "REF": df_row.REF,
-                "ALT": df_row.ALT,
-                "SYMBOL": df_row.SYMBOL,
-                "IMPACT": df_row.IMPACT,
-                "CONSEQUENCE": df_row.CONSEQUENCE,
-                "IS_NOVEL": df_row.IS_NOVEL,
-                "IS_AML_GENE": df_row.IS_AML_GENE,
-                "FILTER": df_row.FILTER,
-                "GT": gt,
-                "GT_CLASS": gt_class,
-                "DP": dp,
-                "GQ": gq,
-                "VQSLOD": df_row.VQSLOD,
-                "gnomADe_AF": df_row.gnomADe_AF,
+                "sample":       sname,
+                "CHROM":        df_row.CHROM,
+                "POS":          df_row.POS,
+                "REF":          df_row.REF,
+                "ALT":          df_row.ALT,
+                "SYMBOL":       df_row.SYMBOL,
+                "IMPACT":       df_row.IMPACT,
+                "CONSEQUENCE":  df_row.CONSEQUENCE,
+                "HGVSp":        df_row.HGVSp,        # ← NEW (needed by lollyplot)
+                "IS_NOVEL":     df_row.IS_NOVEL,
+                "IS_AML_GENE":  df_row.IS_AML_GENE,
+                "FILTER":       df_row.FILTER,
+                "GT":           gt,
+                "GT_CLASS":     gt_class,
+                "VAF":          vaf,                  # ← NEW
+                "DP":           dp,
+                "GQ":           gq,
+                "VQSLOD":       df_row.VQSLOD,
+                "gnomADe_AF":   df_row.gnomADe_AF,
             })
 
     return pd.DataFrame(rows)
