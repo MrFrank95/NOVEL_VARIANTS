@@ -463,17 +463,16 @@ for vclass, grp in lolly_df.groupby("VAR_CLASS"):
  
         impact_val = str(r.get("IMPACT", "") or "—")
  
-    hover_texts.append(
-        f"<b>{r['_label']}</b><br>"
-        f"Posición aa: {int(r['_xpos']) if pd.notna(r['_xpos']) else '?'}<br>"
-        f"Portadoras: {r['N_Carriers']}<br>"
-        f"VAF promedio: {r['Mean_VAF']:.1f}%<br>"
-        f"AF cohorte: {r['AF']:.4f}<br>"          # ← línea nueva
-        f"Consecuencia: {r['CONSEQUENCE'].replace('_',' ')}<br>"
-        f"Impacto VEP: <b>{impact_val}</b><br>"
-        f"ClinVar: {clin or '—'}<br>"
-        f"dbSNP: {db_links}"
-    )
+        hover_texts.append(
+            f"<b>{r['_label']}</b><br>"
+            f"Posición aa: {int(r['_xpos']) if pd.notna(r['_xpos']) else '?'}<br>"
+            f"Portadoras: {r['N_Carriers']}<br>"
+            f"VAF promedio: {r['Mean_VAF']:.1f}%<br>"
+            f"Consecuencia: {r['CONSEQUENCE'].replace('_',' ')}<br>"
+            f"Impacto VEP: <b>{impact_val}</b><br>"
+            f"ClinVar: {clin or '—'}<br>"
+            f"dbSNP: {db_links}"
+        )
 
     fig.add_trace(
         go.Scatter(
