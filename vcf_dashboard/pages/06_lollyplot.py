@@ -630,7 +630,7 @@ fig.add_annotation(
 # ─────────────────────────────────────────────────────────────────────────────
 
 st.caption(
-    "🍭 **Tamaño del círculo** = VAF promedio de portadores &nbsp;·&nbsp; "
+    "**Tamaño del círculo** = VAF promedio de portadores &nbsp;·&nbsp; "
     "**Color de relleno** = tipo de variante &nbsp;·&nbsp; "
     "**Color de borde** = impacto VEP &nbsp;·&nbsp; "
     "**★** = Variante nueva &nbsp;·&nbsp; "
