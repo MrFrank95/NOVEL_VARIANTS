@@ -231,7 +231,7 @@ sdf_carriers = sdf[sdf["GT_CLASS"].isin(["Heterozygous", "Homozygous Alternate"]
 # ENCABEZADO
 # ─────────────────────────────────────────────────────────────────────────────
 
-st.title("🍭 Lollyplot de Variantes")
+st.title("Lollyplot de Variantes")
 
 with st.expander("📖 Glosario — ¿qué significan estos campos?"):
     st.markdown("""
