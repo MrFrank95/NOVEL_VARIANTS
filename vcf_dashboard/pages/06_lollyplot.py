@@ -447,6 +447,7 @@ for vclass, grp in lolly_df.groupby("VAR_CLASS"):
     ).tolist()
 
     # Textos de hover
+    # Textos de hover
     hover_texts = []
     for _, r in grp.iterrows():
         ex   = str(r.get("EXISTING_VARIATION", "") or "")
@@ -459,17 +460,15 @@ for vclass, grp in lolly_df.groupby("VAR_CLASS"):
             f'<a href="https://www.ncbi.nlm.nih.gov/snp/{rs}">{rs}</a>'
             for rs in rs_ids
         ) if rs_ids else "—"
-
+ 
         impact_val = str(r.get("IMPACT", "") or "—")
-
-    #af_val = f"{r['AF']:.4f}" if pd.notna(r['AF']) else "—"
-    
+ 
     hover_texts.append(
         f"<b>{r['_label']}</b><br>"
         f"Posición aa: {int(r['_xpos']) if pd.notna(r['_xpos']) else '?'}<br>"
         f"Portadoras: {r['N_Carriers']}<br>"
         f"VAF promedio: {r['Mean_VAF']:.1f}%<br>"
-        f"AF cohorte: {af_val}<br>"               # ← línea nueva
+        f"AF cohorte: {r['AF']:.4f}<br>"          # ← línea nueva
         f"Consecuencia: {r['CONSEQUENCE'].replace('_',' ')}<br>"
         f"Impacto VEP: <b>{impact_val}</b><br>"
         f"ClinVar: {clin or '—'}<br>"
