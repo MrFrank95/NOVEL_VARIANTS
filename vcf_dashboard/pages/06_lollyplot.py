@@ -462,7 +462,7 @@ for vclass, grp in lolly_df.groupby("VAR_CLASS"):
 
         impact_val = str(r.get("IMPACT", "") or "—")
 
-    af_val = f"{r['AF']:.4f}" if pd.notna(r['AF']) else "—"
+    #af_val = f"{r['AF']:.4f}" if pd.notna(r['AF']) else "—"
     
     hover_texts.append(
         f"<b>{r['_label']}</b><br>"
