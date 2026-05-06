@@ -33,7 +33,7 @@ st.sidebar.markdown("---")
 
 pages = {
     #"🏠 Overview": "pages/01_overview.py",
-    #"🔴 Novel AML Candidates": "pages/02_novel_candidates.py",
+    "🔴 Novel AML Candidates": "pages/02_novel_candidates.py",
     "📊 Lollyplot Dashboard": "pages/06_lollyplot.py"
     #"👥 Per-Sample Burden": "pages/04_per_sample.py",
     #"🔍 Variant Browser": "pages/05_browser.py",
