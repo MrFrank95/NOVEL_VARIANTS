@@ -284,6 +284,9 @@ if df_v.empty:
 # SELECTOR DE GEN
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
+# SELECTOR DE GEN
+# ─────────────────────────────────────────────────────────────────────────────
 gene_summary = (
     df_v.groupby(["SYMBOL", "GENE_TIER"])
     .agg(N_Variantes=("POS", "nunique"), Max_AF=("AF", "max"))
@@ -291,18 +294,38 @@ gene_summary = (
     .sort_values("N_Variantes", ascending=False)
 )
 
+gene_list = gene_summary["SYMBOL"].tolist()
+
 col_gene, _ = st.columns([2, 3])
 with col_gene:
-    gene_list = gene_summary["SYMBOL"].tolist()
-    sel_gene  = st.selectbox(
+    busqueda = st.text_input(
+        "Buscar gen",
+        placeholder="Ej: TP53, BRCA1…",
+        help="Escribe parte del nombre del gen para filtrar la lista",
+    )
+
+    # Filtrar lista según texto ingresado (insensible a mayúsculas)
+    if busqueda.strip():
+        gene_list_filtrada = [
+            g for g in gene_list
+            if busqueda.strip().upper() in g.upper()
+        ]
+    else:
+        gene_list_filtrada = gene_list
+
+    if not gene_list_filtrada:
+        st.warning(f"Ningún gen coincide con **{busqueda}**.")
+        st.stop()
+
+    sel_gene = st.selectbox(
         "Seleccionar gen",
-        options=gene_list,
+        options=gene_list_filtrada,
         format_func=lambda g: (
             f"{g}  "
             f"({gene_summary.loc[gene_summary['SYMBOL']==g, 'N_Variantes'].values[0]} variantes)"
         ),
+        help=f"{len(gene_list_filtrada)} gen(es) encontrados",
     )
-
 # ─────────────────────────────────────────────────────────────────────────────
 # CONSTRUIR DATOS DEL LOLLYPLOT PARA EL GEN SELECCIONADO
 # ─────────────────────────────────────────────────────────────────────────────
