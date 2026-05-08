@@ -468,6 +468,7 @@ for vclass, grp in lolly_df.groupby("VAR_CLASS"):
             f"Posición aa: {int(r['_xpos']) if pd.notna(r['_xpos']) else '?'}<br>"
             f"Portadoras: {r['N_Carriers']}<br>"
             f"VAF promedio: {r['Mean_VAF']:.1f}%<br>"
+            f"AF Cohorte: {r['Cohort AF']:.1f}%<br>"
             f"Consecuencia: {r['CONSEQUENCE'].replace('_',' ')}<br>"
             f"Impacto VEP: <b>{impact_val}</b><br>"
             f"ClinVar: {clin or '—'}<br>"
