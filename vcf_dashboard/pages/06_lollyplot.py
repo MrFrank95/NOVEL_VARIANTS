@@ -693,8 +693,8 @@ detail_df = gene_carriers.merge(
 )
 
 if clicked_x is not None:
-    tol    = 1
-    mask   = (detail_df["Protein_position"] - clicked_x).abs() <= tol
+    tol    = 0
+    mask   = (detail_df["Protein_position"] - clicked_x).abs() == tol
     filt   = detail_df[mask]
     label_ = filt["_label"].iloc[0] if not filt.empty else str(clicked_x)
     st.success(f"📌 Filtrado a: **{label_}** — {len(filt)} muestras portadoras")
